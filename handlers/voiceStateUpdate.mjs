@@ -172,7 +172,8 @@ async function addVoiceStateToNotion(userName, channelName, eventType, guildName
         },
         日時: {
           date: {
-            start: new Date().toISOString()
+            start: new Date().toISOString(),
+            time_zone: "Asia/Tokyo"
           }
         }
       }
