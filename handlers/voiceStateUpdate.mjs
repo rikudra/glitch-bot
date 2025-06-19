@@ -172,8 +172,7 @@ async function addVoiceStateToNotion(userName, channelName, eventType, guildName
         },
         日時: {
           date: {
-            start: new Date().toISOString(),
-            time_zone: "Asia/Tokyo"
+            start: getJSTISOString()
           }
         }
       }
@@ -182,4 +181,12 @@ async function addVoiceStateToNotion(userName, channelName, eventType, guildName
   } catch (error) {
     console.error('💥 Notionへの記録エラー！', error.body || error);
   }
+}
+
+function getJSTISOString() {
+  const now = new Date();
+  const offset = now.getTimezoneOffset() * 60 * 1000; // UTCからのミリ秒単位のオフセット
+  const jstOffset = 9 * 60 * 60 * 1000; // JSTのオフセット (9時間)
+  const jstTime = new Date(now.getTime() + offset + jstOffset);
+  return jstTime.toISOString().slice(0, -1) + '+09:00'; // 末尾の'Z'を'+09:00'に置換
 }
