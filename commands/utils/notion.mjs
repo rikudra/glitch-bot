@@ -1,4 +1,10 @@
 import { Client } from "@notionhq/client";
+import fetch from "node-fetch";
+
+// グローバルスコープにfetchを定義
+if (!globalThis.fetch) {
+  globalThis.fetch = fetch;
+}
 
 const NOTION_API_KEY = process.env.NOTION_API_KEY;
 const NOTION_DATABASE_ID = process.env.NOTION_DATABASE_ID;
