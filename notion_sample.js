@@ -21,7 +21,7 @@ async function addPageToDatabase() {
           title: [
             {
               text: {
-                content: 'りっくんの新しいタスク♡'
+                content: '新しいページ'
               }
             }
           ]
