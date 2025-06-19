@@ -1,10 +1,8 @@
 import { EmbedBuilder } from "discord.js";
 import Notification from "../models/notification.mjs";
-import { recordVoiceActivity } from "../commands/utils/notion.mjs";
 
 export default async (oldState, newState) => {
-  // ユーザーがボイスチャンネルに参加したとき
-  if (oldState.channelId === null && newState.channelId !== null) {
+  if (oldState.channelId === null && newState.channel?.members.size == 1){
     const notifications = await Notification.findAll({
       where: {
         guildId: newState.guild.id,
@@ -24,10 +22,6 @@ export default async (oldState, newState) => {
         await channel.send({ embeds: [embed] });
       })
     );
-    recordVoiceActivity(newState.member, newState.channel, "参加");
-  }
-  // ユーザーがボイスチャンネルから退出したとき
-  else if (oldState.channelId !== null && newState.channelId === null) {
-    recordVoiceActivity(oldState.member, oldState.channel, "退出");
+   
   }
 };
