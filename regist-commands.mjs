@@ -26,12 +26,12 @@ export default async() => {
 
       const data = await rest.put(
         Routes.applicationCommands(process.env.APPLICATION_ID),
-        { body: commands },
+        { body: [] }, // 空の配列を送信してすべてのコマンドを削除
       );
       
       const dataGuild = await rest.put(
         Routes.applicationCommands(process.env.APPLICATION_ID),
-        { body: commands },
+        { body: [] }, // 空の配列を送信してすべてのコマンドを削除
       );
 
       console.log(`[INIT] ${commands.length}つのスラッシュコマンドを更新しました。`);
