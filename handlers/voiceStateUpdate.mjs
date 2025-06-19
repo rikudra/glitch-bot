@@ -61,10 +61,19 @@ export default async (oldState, newState) => {
   }
   // ボイスチャンネルを移動した時
   else if (oldState.channelId !== null && newState.channelId !== null && oldState.channelId !== newState.channelId) {
+    // 移動元チャンネルからの退出を記録
     await addVoiceStateToNotion(
       userName,
-      `${oldState.channel.name} から ${newState.channel.name} へ移動`,
-      "移動",
+      oldState.channel.name,
+      "退出",
+      guildName,
+      userAvatarUrl
+    );
+    // 移動先チャンネルへの入室を記録
+    await addVoiceStateToNotion(
+      userName,
+      newState.channel.name,
+      "入室",
       guildName,
       userAvatarUrl
     );
@@ -124,7 +133,7 @@ async function addVoiceStateToNotion(userName, channelName, eventType, guildName
           title: [
             {
               text: {
-                content: `${userName}が${channelName}に${eventType}`
+                content: `【${channelName}】${userName}が${eventType}`
               }
             }
           ]
