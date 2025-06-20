@@ -116,6 +116,61 @@ export default async (oldState, newState) => {
   }
 };
 
+// Notionユーザーデータベースにユーザーが存在するか確認する関数
+async function checkUserExistsInNotion(userName) {
+  try {
+    const response = await notion.databases.query({
+      database_id: process.env.NOTION_USER_DB_ID,
+      filter: {
+        property: '名前', // Notionデータベースのプロパティ名に合わせて変更
+        title: {
+          equals: userName,
+        },
+      },
+    });
+    return response.results.length > 0;
+  } catch (error) {
+    console.error('💥 NotionユーザーDBの存在確認エラー！', error.body || error);
+    return false;
+  }
+}
+
+// Notionユーザーデータベースにユーザーを追加する関数
+async function addUserToNotion(userName, userAvatarUrl) {
+  try {
+    const response = await notion.pages.create({
+      parent: {
+        database_id: process.env.NOTION_USER_DB_ID,
+      },
+      icon: {
+        type: "external",
+        external: {
+          url: userAvatarUrl
+        }
+      },
+      properties: {
+        名前: { // Notionデータベースのプロパティ名に合わせて変更
+          title: [
+            {
+              text: {
+                content: userName,
+              },
+            },
+          ],
+        },
+        種類: { // Notionデータベースのプロパティ名に合わせて変更
+          select: {
+            name: 'ユーザー', // 画像で確認した「ユーザー」
+          },
+        },
+      },
+    });
+    console.log('🎉 NotionユーザーDBに新しいユーザーを記録しました！ページID:', response.id);
+  } catch (error) {
+    console.error('💥 NotionユーザーDBへの記録エラー！', error.body || error);
+  }
+}
+
 async function addVoiceStateToNotion(userName, channelName, eventType, guildName, userAvatarUrl) {
   try {
     const response = await notion.pages.create({
