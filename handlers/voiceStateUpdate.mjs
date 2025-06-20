@@ -141,17 +141,75 @@ async function checkUserExistsInNotion(userName) {
   }
 }
 
+// Notionにファイルをアップロードし、そのURLを返す関数
+async function uploadFileToNotion(fileBuffer, fileName, contentType) {
+  try {
+    // 1. ファイルアップロードセッションを作成
+    const createResponse = await notion.files.create({
+      mode: 'public', // または 'private'
+      filename: fileName,
+      content_type: contentType,
+      number_of_parts: 1, // 単一パートアップロード
+    });
+
+    const { id: fileUploadId, upload_url, upload_headers } = createResponse;
+
+    // 2. 取得したURLにファイルをアップロード
+    const uploadResponse = await fetch(upload_url, {
+      method: 'PUT', // PUTメソッドでアップロード
+      headers: upload_headers,
+      body: fileBuffer,
+    });
+
+    if (!uploadResponse.ok) {
+      throw new Error(`ファイルアップロードエラー: ${uploadResponse.statusText}`);
+    }
+
+    // 3. アップロード完了を通知
+    await notion.files.complete({
+      file_upload_id: fileUploadId,
+    });
+
+    // 4. アップロードされたファイル情報を取得
+    const fileInfo = await notion.files.retrieve({
+      file_upload_id: fileUploadId,
+    });
+
+    if (fileInfo.type === 'file') {
+      return fileInfo.file.url;
+    } else {
+      console.error('💥 アップロードされたファイルのURLが取得できませんでした。');
+      return null;
+    }
+
+  } catch (error) {
+    console.error('💥 Notionへのファイルアップロードエラー！', error.body || error);
+    return null;
+  }
+}
+
 // Notionユーザーデータベースにユーザーを追加する関数
 async function addUserToNotion(userName, userAvatarUrl) {
+  let iconUrl = userAvatarUrl; // デフォルトは外部URL
+
+  // アバター画像をダウンロードしてNotionにアップロード
+  const imageBuffer = await getImageBufferFromUrl(userAvatarUrl);
+  if (imageBuffer) {
+    const uploadedUrl = await uploadFileToNotion(imageBuffer, `${userName}_avatar.png`, 'image/png');
+    if (uploadedUrl) {
+      iconUrl = uploadedUrl;
+    }
+  }
+
   try {
     const response = await notion.pages.create({
       parent: {
         database_id: process.env.NOTION_USER_DB_ID,
       },
       icon: {
-        type: "external",
-        external: {
-          url: userAvatarUrl
+        type: "file", // ファイルタイプに変更
+        file: {
+          url: iconUrl,
         }
       },
       properties: {
@@ -178,15 +236,26 @@ async function addUserToNotion(userName, userAvatarUrl) {
 }
 
 async function addVoiceStateToNotion(userName, channelName, eventType, guildName, userAvatarUrl) {
+  let iconUrl = userAvatarUrl; // デフォルトは外部URL
+
+  // アバター画像をダウンロードしてNotionにアップロード
+  const imageBuffer = await getImageBufferFromUrl(userAvatarUrl);
+  if (imageBuffer) {
+    const uploadedUrl = await uploadFileToNotion(imageBuffer, `${userName}_avatar.png`, 'image/png');
+    if (uploadedUrl) {
+      iconUrl = uploadedUrl;
+    }
+  }
+
   try {
     const response = await notion.pages.create({
       parent: {
         database_id: databaseId
       },
       icon: {
-        type: "external",
-        external: {
-          url: userAvatarUrl
+        type: "file", // ファイルタイプに変更
+        file: {
+          url: iconUrl,
         }
       },
       properties: {
