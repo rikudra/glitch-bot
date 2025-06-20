@@ -19,6 +19,12 @@ export default async (oldState, newState) => {
 
   // ボイスチャンネルに入室した時
   if (oldState.channelId === null && newState.channelId !== null) {
+    // Notionユーザーデータベースにユーザーが存在するか確認し、存在しない場合は追加
+    const userExists = await checkUserExistsInNotion(userName);
+    if (!userExists) {
+      await addUserToNotion(userName, userAvatarUrl);
+    }
+
     const notifications = await Notification.findAll({
       where: {
         guildId: newState.guild.id,
